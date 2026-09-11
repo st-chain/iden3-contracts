@@ -46,20 +46,11 @@ const IdentityTreeStoreProxyFirstImplementationModule = buildModule(
 export const IdentityTreeStoreFinalImplementationModule = buildModule(
   "IdentityTreeStoreFinalImplementationModule",
   (m) => {
-    const poseidon2 = m.useModule(Poseidon2AtModule).contract;
-    const poseidon3 = m.useModule(Poseidon3AtModule).contract;
     const state = m.useModule(StateAtModule).proxy;
 
-    const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, [], {
-      libraries: {
-        PoseidonUnit2L: poseidon2,
-        PoseidonUnit3L: poseidon3,
-      },
-    });
+    const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, []);
 
     return {
-      poseidon2,
-      poseidon3,
       state,
       newImplementation,
     };
@@ -68,12 +59,10 @@ export const IdentityTreeStoreFinalImplementationModule = buildModule(
 
 export const IdentityTreeStoreProxyModule = buildModule("IdentityTreeStoreProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(IdentityTreeStoreProxyFirstImplementationModule);
-  const { poseidon2, poseidon3, state, newImplementation } = m.useModule(
+  const { state, newImplementation } = m.useModule(
     IdentityTreeStoreFinalImplementationModule,
   );
   return {
-    poseidon2,
-    poseidon3,
     state,
     newImplementation,
     proxyAdmin,

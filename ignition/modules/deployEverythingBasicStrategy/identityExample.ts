@@ -3,15 +3,11 @@ import { Poseidon3Module, Poseidon4Module, SmtLibModule } from "./libraries";
 import StateModule from "./state";
 
 const IdentityLibModule = buildModule("IdentityLibModule", (m) => {
-  const poseidon3 = m.useModule(Poseidon3Module).poseidon;
-  const poseidon4 = m.useModule(Poseidon4Module).poseidon;
   const smtLib = m.useModule(SmtLibModule).smtLib;
 
   const identityLib = m.contract("IdentityLib", [], {
     libraries: {
       SmtLib: smtLib,
-      PoseidonUnit3L: poseidon3,
-      PoseidonUnit4L: poseidon4,
     },
   });
   return { identityLib };

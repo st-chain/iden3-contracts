@@ -55,6 +55,15 @@ async function main() {
   ];
 
   for (const contract of contracts) {
+    if (
+      contract.name.startsWith("PoseidonUnit") &&
+      contractsInfo.POSEIDON_1.unifiedAddress === "0x0000000000000000000000000000000000000100"
+    ) {
+      parameters[contract.paramName].contractAddress = contractsInfo.POSEIDON_1.unifiedAddress;
+      console.log(`${contract.name} is precompiled at: ${contractsInfo.POSEIDON_1.unifiedAddress}`);
+      continue;
+    }
+
     const deployment = await ignition.deploy(contract.module, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),

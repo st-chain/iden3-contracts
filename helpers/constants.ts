@@ -130,9 +130,15 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     idType: "0x0162",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }); // bnb-testnet
+  }) // bnb-testnet
+  .set(2401, {
+    idType: "0x01C1",
+    networkType: "main",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }); // me-hub
 
 export const networks = Object.freeze({
+  ME_HUB: { name: "me-hub", chainId: 2401 },
   PRIVADO_TESTNET: { name: "Privado Testnet", chainId: 21001 },
   PRIVADO_MAINNET: { name: "Privado Mainnet", chainId: 21000 },
   BILLIONS_TESTNET: { name: "Billions Testnet", chainId: 6913 },
@@ -438,22 +444,22 @@ export const contractsInfo = Object.freeze({
   },
   POSEIDON_1: {
     name: "PoseidonUnit1L",
-    unifiedAddress: "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
+    unifiedAddress: "0x0000000000000000000000000000000000000100",
     create2Calldata: "",
   },
   POSEIDON_2: {
     name: "PoseidonUnit2L",
-    unifiedAddress: "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
+    unifiedAddress: "0x0000000000000000000000000000000000000100",
     create2Calldata: "",
   },
   POSEIDON_3: {
     name: "PoseidonUnit3L",
-    unifiedAddress: "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
+    unifiedAddress: "0x0000000000000000000000000000000000000100",
     create2Calldata: "",
   },
   POSEIDON_4: {
     name: "PoseidonUnit4L",
-    unifiedAddress: "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
+    unifiedAddress: "0x0000000000000000000000000000000000000100",
     create2Calldata: "",
   },
   GROTH16_VERIFIER_STATE_TRANSITION: {

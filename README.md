@@ -48,6 +48,7 @@ We have deployed contracts across the following mainnets and testnets so far (**
 - [BNB Smart Chain](https://bscscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - Privado
 - [Billions Network](https://explorer.billions.network/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- me-hub (Chain ID: 2401, mechain_2401-1)
 
 **Testnets**:
 
@@ -102,6 +103,7 @@ BASE_MAINNET_RPC_URL=<rpc url for base mainnet>
 BASE_SEPOLIA_RPC_URL=<rpc url for base sepolia>
 BNB_MAINNET_RPC_URL=<rpc url for bnb mainnet>
 BNB_TESTNET_RPC_URL=<rpc url for bnb testnet>
+MEHUB_RPC_URL=http://127.0.0.1:8545
 
 ETHERSCAN_API_KEY=<etherscan api key>
 ```

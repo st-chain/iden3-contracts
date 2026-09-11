@@ -241,7 +241,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         return NodeType.Unknown;
     }
 
-    function _hashFunc(uint256[] memory preimage) internal pure returns (uint256) {
+    function _hashFunc(uint256[] memory preimage) internal view returns (uint256) {
         if (preimage.length == 2) {
             return PoseidonUnit2L.poseidon([preimage[0], preimage[1]]);
         }

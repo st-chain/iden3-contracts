@@ -23,7 +23,7 @@ contract ReverseHashWrapper {
         return _data.getPreimage(id);
     }
 
-    function hash(uint256[] memory preimage) public pure returns (uint256) {
+    function hash(uint256[] memory preimage) public view returns (uint256) {
         if (preimage.length == 2) {
             return PoseidonUnit2L.poseidon([preimage[0], preimage[1]]);
         }

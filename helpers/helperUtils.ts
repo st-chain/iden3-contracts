@@ -53,6 +53,9 @@ export async function isContract(
   if (!ethers.isAddress(contractAddress)) {
     return false;
   }
+  if (contractAddress.toLowerCase() === "0x0000000000000000000000000000000000000100") {
+    return true;
+  }
   let result;
   if (provider) {
     result = await provider.getCode(contractAddress);
@@ -185,6 +188,7 @@ export function getProviders() {
     { network: networks.BASE_MAINNET.name, rpcUrl: process.env.BASE_MAINNET_RPC_URL as string },
     { network: networks.BNB_TESTNET.name, rpcUrl: process.env.BNB_TESTNET_RPC_URL as string },
     { network: networks.BNB_MAINNET.name, rpcUrl: process.env.BNB_MAINNET_RPC_URL as string },
+    { network: networks.ME_HUB.name, rpcUrl: (process.env.MEHUB_RPC_URL || "http://127.0.0.1:8545") as string },
   ];
 }
 

@@ -18,6 +18,7 @@ import {
   LEDGER_ACCOUNT,
   LINEA_MAINNET_RPC_URL,
   LINEA_SEPOLIA_RPC_URL,
+  MEHUB_RPC_URL,
   POLYGON_AMOY_RPC_URL,
   POLYGON_MAINNET_RPC_URL,
   PRIVADO_MAINNET_RPC_URL,
@@ -234,6 +235,12 @@ export default defineConfig({
       url: `${BNB_TESTNET_RPC_URL}`,
       ...accounts,
     },
+    "me-hub": {
+      type: "http",
+      chainId: 2401,
+      url: `${MEHUB_RPC_URL}`,
+      ...accounts,
+    },
     // --------------------------------------------------------------------------------------------------------------
     // Note: uncomment to use a forked network and then run `npx hardhat node --fork`
     // in some networks is needed to execute first a script with `await ethers.provider.send("evm_mine")`
@@ -306,6 +313,16 @@ export default defineConfig({
           name: "billions-mainnet",
           url: "https://explorer.billions.network",
           apiUrl: "https://explorer.billions.network/api/",
+        },
+      },
+    },
+    2401: {
+      name: "me-hub",
+      blockExplorers: {
+        blockscout: {
+          name: "me-hub",
+          url: "http://127.0.0.1:8545",
+          apiUrl: "http://127.0.0.1:8545",
         },
       },
     },

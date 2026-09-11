@@ -10,16 +10,9 @@ import StateModule from "./state";
 const IdentityTreeStoreImplementationModule = buildModule(
   "IdentityTreeStoreImplementationModule",
   (m) => {
-    const poseidon2 = m.useModule(Poseidon2Module).poseidon;
-    const poseidon3 = m.useModule(Poseidon3Module).poseidon;
     const state = m.useModule(StateModule).state;
 
-    const implementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, [], {
-      libraries: {
-        PoseidonUnit2L: poseidon2,
-        PoseidonUnit3L: poseidon3,
-      },
-    });
+    const implementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, []);
     return { implementation, state };
   },
 );

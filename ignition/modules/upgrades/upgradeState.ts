@@ -13,9 +13,6 @@ const UpgradeStateModule = buildModule("UpgradeStateModule".concat(version), (m)
   });
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
-  const poseidon1ContractAddress = m.getParameter("poseidon1ContractAddress");
-  const poseidon1 = m.contractAt(contractsInfo.POSEIDON_1.name, poseidon1ContractAddress);
-
   const stateLib = m.contract("StateLib");
   const smtLibContractAddress = m.getParameter("smtLibContractAddress");
   const smtLib = m.contractAt(contractsInfo.SMT_LIB.name, smtLibContractAddress);
@@ -34,7 +31,6 @@ const UpgradeStateModule = buildModule("UpgradeStateModule".concat(version), (m)
     libraries: {
       StateLib: stateLib,
       SmtLib: smtLib,
-      PoseidonUnit1L: poseidon1,
     },
   });
 
