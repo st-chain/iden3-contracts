@@ -10,13 +10,11 @@ import {
   writeDeploymentParameters,
 } from "../../../helpers/helperUtils";
 import {
-  MCPaymentProxyModule,
   Poseidon1Module,
   Poseidon2Module,
   Poseidon3Module,
   Poseidon4Module,
   SmtLibModule,
-  VCPaymentProxyModule,
 } from "../../../ignition";
 import { StateProxyModule } from "../../../ignition/modules/state";
 import { UniversalVerifierProxyModule } from "../../../ignition/modules/universalVerifier";
@@ -40,7 +38,6 @@ import {
   IdentityTreeStoreAtModule,
   LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
-  MCPaymentAtModule,
   Poseidon1AtModule,
   Poseidon2AtModule,
   Poseidon3AtModule,
@@ -48,7 +45,6 @@ import {
   SmtLibAtModule,
   StateAtModule,
   UniversalVerifierAtModule,
-  VCPaymentAtModule,
 } from "../../../ignition/modules/contractsAt";
 import { network } from "hardhat";
 import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
@@ -295,24 +291,6 @@ async function main() {
       isProxy: true,
       verificationOpts: contractsInfo.VALIDATOR_ETH_IDENTITY.verificationOpts,
     },
-    {
-      module: VCPaymentProxyModule,
-      moduleAt: VCPaymentAtModule,
-      contractAddress:
-        parameters[`${VCPaymentAtModule.id}`].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
-      name: contractsInfo.VC_PAYMENT.name,
-      isProxy: true,
-      verificationOpts: contractsInfo.VC_PAYMENT.verificationOpts,
-    },
-    {
-      module: MCPaymentProxyModule,
-      moduleAt: MCPaymentAtModule,
-      contractAddress:
-        parameters[`${MCPaymentAtModule.id}`].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
-      name: contractsInfo.MC_PAYMENT.name,
-      isProxy: true,
-      verificationOpts: contractsInfo.MC_PAYMENT.verificationOpts,
-    },
   ];
 
   for (const contract of contracts) {
@@ -352,9 +330,6 @@ async function main() {
       );
 
       if (contract.name == contractsInfo.STATE.name) {
-        parameters[contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name.concat("AtModule")] = {
-          contractAddress: deployedContract.crossChainProofValidator.target,
-        };
         parameters[contractsInfo.STATE_LIB.name.concat("AtModule")] = {
           contractAddress: deployedContract.stateLib.target,
         };

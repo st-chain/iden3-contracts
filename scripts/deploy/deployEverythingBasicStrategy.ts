@@ -1,6 +1,5 @@
 import DeployEverythingBasicStrategy from "../../ignition/modules/deployEverythingBasicStrategy/deployEverythingBasicStrategy";
 import { getChainId, getDefaultIdType, verifyContract } from "../../helpers/helperUtils";
-import { ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../helpers/constants";
 import { network } from "hardhat";
 
 const { ignition } = await network.connect();
@@ -10,12 +9,6 @@ async function main() {
     StateProxyModule: {
       defaultIdType: (await getDefaultIdType()).defaultIdType,
     },
-    CrossChainProofValidatorModule: {
-      oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    },
-    MCPaymentProxyModule: {
-      ownerPercentage: 10,
-    },
   };
 
   const {
@@ -24,7 +17,6 @@ async function main() {
     verifierLib,
     state,
     stateImplementation,
-    crossChainProofValidator,
     stateLib,
     smtLib,
     identityTreeStore,
@@ -38,8 +30,6 @@ async function main() {
     authV2Validator,
     authV3Validator,
     authV3_8_32Validator,
-    MCPayment,
-    VCPayment,
     universalVerifier_ManyResponsesPerUserAndRequestImplementation,
     universalVerifier_ManyResponsesPerUserAndRequest,
     verifierLib_ManyResponsesPerUserAndRequest,
@@ -58,7 +48,6 @@ async function main() {
     verifierLib,
     state,
     stateImplementation,
-    crossChainProofValidator,
     stateLib,
     smtLib,
     identityTreeStore,
@@ -72,8 +61,6 @@ async function main() {
     authV2Validator,
     authV3Validator,
     authV3_8_32Validator,
-    MCPayment,
-    VCPayment,
     universalVerifier_ManyResponsesPerUserAndRequest,
     universalVerifier_ManyResponsesPerUserAndRequestImplementation,
     verifierLib_ManyResponsesPerUserAndRequest,

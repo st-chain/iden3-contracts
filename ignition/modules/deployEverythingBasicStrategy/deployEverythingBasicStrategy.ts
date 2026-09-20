@@ -7,8 +7,6 @@ import LinkedMultiQueryValidatorModule from "./linkedMultiQueryValidator";
 import EthIdentityValidatorModule from "./ethIdentityValidator";
 import AuthV2ValidatorModule from "./authV2Validator";
 import IdentityTreeStoreModule from "./identityTreeStore";
-import MCPaymentModule from "./mcPayment";
-import VCPaymentModule from "./vcPayment";
 import UniversalVerifier_ManyResponsesPerUserAndRequestModule from "./universalVerifier_ManyResponsesPerUserAndRequest";
 import { network } from "hardhat";
 import AuthV3ValidatorModule from "./authV3Validator";
@@ -26,7 +24,6 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     verifierLib,
     state,
     stateImplementation,
-    crossChainProofValidator,
     stateLib,
     smtLib,
   } = m.useModule(UniversalVerifierModule);
@@ -38,7 +35,9 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     CredentialAtomicQuerySigV2ValidatorModule,
   );
   const { credentialAtomicQueryV3Validator } = m.useModule(CredentialAtomicQueryV3ValidatorModule);
-  const { credentialAtomicQueryV3StableValidator} = m.useModule(CredentialAtomicQueryV3StableValidatorModule)
+  const { credentialAtomicQueryV3StableValidator } = m.useModule(
+    CredentialAtomicQueryV3StableValidatorModule,
+  );
   const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
   const { linkedMultiQueryStableValidator } = m.useModule(LinkedMultiQueryStableValidatorModule);
   const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
@@ -46,8 +45,6 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   const { authV3Validator } = m.useModule(AuthV3ValidatorModule);
   const { authV3_8_32Validator } = m.useModule(AuthV3_8_32ValidatorModule);
   const { identityTreeStore } = m.useModule(IdentityTreeStoreModule);
-  const { MCPayment } = m.useModule(MCPaymentModule);
-  const { VCPayment } = m.useModule(VCPaymentModule);
 
   const contractOwner = m.getAccount(0);
 
@@ -66,7 +63,7 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryV3StableValidator], {
     id: "addValidatorToWhitelist_credentialAtomicQueryV3StableValidator",
     from: contractOwner,
-  });  
+  });
   m.call(universalVerifier, "addValidatorToWhitelist", [linkedMultiQueryValidator], {
     id: "addValidatorToWhitelist_linkedMultiQueryValidator",
     from: contractOwner,
@@ -74,7 +71,7 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(universalVerifier, "addValidatorToWhitelist", [linkedMultiQueryStableValidator], {
     id: "addValidatorToWhitelist_linkedMultiQueryStableValidator",
     from: contractOwner,
-  });  
+  });
   m.call(
     universalVerifier,
     "setAuthMethod",
@@ -110,11 +107,17 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
       id: "setAuthMethod_authV3_8_32Validator",
       from: contractOwner,
     },
-  );    
+  );
   m.call(
     universalVerifier,
     "setAuthMethod",
-    [{ authMethod: "embeddedAuth", validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress, params: "0x" }], // put some dummy address as validator
+    [
+      {
+        authMethod: "embeddedAuth",
+        validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+        params: "0x",
+      },
+    ], // put some dummy address as validator
     {
       id: "setAuthMethod_embeddedAuthValidator",
       from: contractOwner,
@@ -162,7 +165,7 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
       id: "addValidatorToWhitelist_credentialAtomicQueryV3StableValidator_ManyResponsesPerUserAndRequest",
       from: contractOwner,
     },
-  );  
+  );
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "addValidatorToWhitelist",
@@ -180,7 +183,7 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
       id: "addValidatorToWhitelist_linkedMultiQueryStableValidator_ManyResponsesPerUserAndRequest",
       from: contractOwner,
     },
-  );  
+  );
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "setAuthMethod",
@@ -216,11 +219,17 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
       id: "setAuthMethod_authV3_8_32Validator_ManyResponsesPerUserAndRequest",
       from: contractOwner,
     },
-  );    
+  );
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "setAuthMethod",
-    [{ authMethod: "embeddedAuth", validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress, params: "0x" }], // put some dummy address as validator
+    [
+      {
+        authMethod: "embeddedAuth",
+        validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+        params: "0x",
+      },
+    ], // put some dummy address as validator
     {
       id: "setAuthMethod_embeddedAuthValidator_ManyResponsesPerUserAndRequest",
       from: contractOwner,
@@ -236,7 +245,6 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     verifierLib_ManyResponsesPerUserAndRequest,
     state,
     stateImplementation,
-    crossChainProofValidator,
     stateLib,
     smtLib,
     identityTreeStore,
@@ -250,8 +258,6 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     authV2Validator,
     authV3Validator,
     authV3_8_32Validator,
-    MCPayment,
-    VCPayment,
   };
 });
 

@@ -18,8 +18,6 @@ import { LinkedMultiQueryValidatorProxyModule } from "../linkedMultiQueryValidat
 import { LinkedMultiQueryStableValidatorProxyModule } from "../linkedMultiQueryStableValidator";
 import { AuthV2ValidatorProxyModule } from "../authV2Validator";
 import { EthIdentityValidatorProxyModule } from "../ethIdentityValidator";
-import { VCPaymentProxyModule } from "../vcPayment";
-import { MCPaymentProxyModule } from "../mcPayment";
 import { AuthV3ValidatorProxyModule } from "../authV3Validator";
 import { AuthV3_8_32ValidatorProxyModule } from "../authV3_8_32Validator";
 
@@ -72,9 +70,6 @@ const DeploySystemInitialImplementationModule = buildModule(
       EthIdentityValidatorProxyModule,
     );
 
-    const { newImplementation: newVCPaymentImpl } = m.useModule(VCPaymentProxyModule);
-    const { newImplementation: newMCPaymentImpl } = m.useModule(MCPaymentProxyModule);
-
     return {
       create2AddressAnchor,
       poseidon1,
@@ -93,8 +88,6 @@ const DeploySystemInitialImplementationModule = buildModule(
       newAuthV3ValidatorImpl,
       newAuthV3_8_32ValidatorImpl,
       newEthIdentityValidatorImpl,
-      newVCPaymentImpl,
-      newMCPaymentImpl,
     };
   },
 );

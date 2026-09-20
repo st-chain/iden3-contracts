@@ -7,19 +7,7 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../../helpers/constants";
 
-export const CrossChainProofValidatorModule = buildModule("CrossChainProofValidatorModule", (m) => {
-  const domainName = "StateInfo";
-  const signatureVersion = "1";
-  const oracleSigningAddress = m.getParameter("oracleSigningAddress");
-
-  const crossChainProofValidator = m.contract(contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name, [
-    domainName,
-    signatureVersion,
-    oracleSigningAddress,
-  ]);
-
-  return { crossChainProofValidator };
-});
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const StateLibModule = buildModule("StateLibModule", (m) => {
   const stateLib = m.contract("StateLib");
@@ -32,7 +20,6 @@ const StateImplementationModule = buildModule("StateImplementationModule", (m) =
   );
   const { stateLib } = m.useModule(StateLibModule);
   const { smtLib } = m.useModule(SmtLibModule);
-  const { crossChainProofValidator } = m.useModule(CrossChainProofValidatorModule);
 
   const implementation = m.contract(contractsInfo.STATE.name, [], {
     libraries: {
@@ -42,7 +29,6 @@ const StateImplementationModule = buildModule("StateImplementationModule", (m) =
   });
 
   return {
-    crossChainProofValidator,
     groth16Verifier,
     implementation,
     stateLib,
@@ -51,7 +37,7 @@ const StateImplementationModule = buildModule("StateImplementationModule", (m) =
 });
 
 const StateProxyModule = buildModule("StateProxyModule", (m) => {
-  const { crossChainProofValidator, groth16Verifier, implementation, stateLib, smtLib } =
+  const { groth16Verifier, implementation, stateLib, smtLib } =
     m.useModule(StateImplementationModule);
 
   const proxyAdminOwner = m.getAccount(0);
@@ -64,7 +50,7 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
     groth16Verifier,
     defaultIdType,
     proxyAdminOwner,
-    crossChainProofValidator,
+    ZERO_ADDRESS,
   ]);
 
   const proxy = m.contract(
@@ -79,14 +65,14 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
     [implementation, proxyAdminOwner, initializeData],
   );
 
-  return { proxy, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier };
+  return { proxy, implementation, stateLib, smtLib, groth16Verifier };
 });
 
 const StateModule = buildModule("StateModule", (m) => {
-  const { proxy, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier } =
+  const { proxy, implementation, stateLib, smtLib, groth16Verifier } =
     m.useModule(StateProxyModule);
   const state = m.contractAt(contractsInfo.STATE.name, proxy);
-  return { state, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier };
+  return { state, implementation, stateLib, smtLib, groth16Verifier };
 });
 
 export default StateModule;

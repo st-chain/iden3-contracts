@@ -10,8 +10,6 @@ import LinkedMultiQueryValidatorModule from "../linkedMultiQueryValidator";
 import LinkedMultiQueryStableValidatorModule from "../linkedMultiQueryStableValidator";
 import AuthV2ValidatorModule from "../authV2Validator";
 import EthIdentityValidatorModule from "../ethIdentityValidator";
-import MCPaymentModule from "../mcPayment";
-import VCPaymentModule from "../vcPayment";
 import { network } from "hardhat";
 import AuthV3ValidatorModule from "../authV3Validator";
 import AuthV3_8_32ValidatorModule from "../authV3_8_32Validator";
@@ -39,16 +37,13 @@ const DeploySystemFianlImplementationsModule = buildModule(
     );
     const { credentialAtomicQueryV3StableValidator } = m.useModule(
       CredentialAtomicQueryV3StableValidatorModule,
-    );    
+    );
     const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
     const { linkedMultiQueryStableValidator } = m.useModule(LinkedMultiQueryStableValidatorModule);
     const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
     const { authV3Validator } = m.useModule(AuthV3ValidatorModule);
     const { authV3_8_32Validator } = m.useModule(AuthV3_8_32ValidatorModule);
     const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
-
-    const { VCPayment } = m.useModule(VCPaymentModule);
-    const { MCPayment } = m.useModule(MCPaymentModule);
 
     m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryMTPV2Validator], {
       id: "addValidatorToWhitelistMTPV2",
@@ -103,7 +98,13 @@ const DeploySystemFianlImplementationsModule = buildModule(
     m.call(
       universalVerifier,
       "setAuthMethod",
-      [{ authMethod: "embeddedAuth", validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress, params: "0x" }], // put some dummy address as validator
+      [
+        {
+          authMethod: "embeddedAuth",
+          validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+          params: "0x",
+        },
+      ], // put some dummy address as validator
       {
         id: "setAuthMethodEmbeddedAuth",
       },
@@ -120,8 +121,6 @@ const DeploySystemFianlImplementationsModule = buildModule(
       authV3Validator,
       authV3_8_32Validator,
       ethIdentityValidator,
-      VCPayment,
-      MCPayment,
     };
   },
 );

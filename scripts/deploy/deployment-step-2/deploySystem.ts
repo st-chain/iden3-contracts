@@ -22,13 +22,9 @@ import {
   IdentityTreeStoreAtModule,
   LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
-  MCPaymentAtModule,
   StateAtModule,
   UniversalVerifierAtModule,
-  VCPaymentAtModule,
 } from "../../../ignition/modules/contractsAt";
-import MCPaymentModule from "../../../ignition/modules/mcPayment";
-import VCPaymentModule from "../../../ignition/modules/vcPayment";
 import { network } from "hardhat";
 import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
 import AuthV3_8_32ValidatorModule from "../../../ignition/modules/authV3_8_32Validator";
@@ -180,22 +176,6 @@ async function main() {
         parameters[`${IdentityTreeStoreAtModule.id}`].proxyAddress ||
         contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
       name: contractsInfo.IDENTITY_TREE_STORE.name,
-      isProxy: true,
-    },
-    {
-      module: VCPaymentModule,
-      moduleAt: VCPaymentAtModule,
-      contractAddress:
-        parameters[`${VCPaymentAtModule.id}`].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
-      name: contractsInfo.VC_PAYMENT.name,
-      isProxy: true,
-    },
-    {
-      module: MCPaymentModule,
-      moduleAt: MCPaymentAtModule,
-      contractAddress:
-        parameters[`${MCPaymentAtModule.id}`].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
-      name: contractsInfo.MC_PAYMENT.name,
       isProxy: true,
     },
     ...requestValidators,

@@ -360,7 +360,6 @@ const EmbeddedVerifierWrapperProxyModule = buildModule(
     const {
       state,
       implementation: stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     } = m.useModule(StateModule);
@@ -391,7 +390,6 @@ const EmbeddedVerifierWrapperProxyModule = buildModule(
       verifierLib,
       state,
       stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     };
@@ -399,16 +397,8 @@ const EmbeddedVerifierWrapperProxyModule = buildModule(
 );
 
 export const EmbeddedVerifierWrapperModule = buildModule("EmbeddedVerifierWrapperModule", (m) => {
-  const {
-    proxy,
-    implementation,
-    verifierLib,
-    state,
-    stateImplementation,
-    crossChainProofValidator,
-    stateLib,
-    smtLib,
-  } = m.useModule(EmbeddedVerifierWrapperProxyModule);
+  const { proxy, implementation, verifierLib, state, stateImplementation, stateLib, smtLib } =
+    m.useModule(EmbeddedVerifierWrapperProxyModule);
   const embeddedVerifierWrapper = m.contractAt("EmbeddedVerifierWrapper", proxy);
   return {
     embeddedVerifierWrapper: embeddedVerifierWrapper,
@@ -416,7 +406,6 @@ export const EmbeddedVerifierWrapperModule = buildModule("EmbeddedVerifierWrappe
     verifierLib,
     state,
     stateImplementation,
-    crossChainProofValidator,
     stateLib,
     smtLib,
   };
@@ -446,7 +435,6 @@ const RequestDisableableTestWrapperProxyModule = buildModule(
     const {
       state,
       implementation: stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     } = m.useModule(StateModule);
@@ -473,7 +461,6 @@ const RequestDisableableTestWrapperProxyModule = buildModule(
       verifierLib,
       state,
       stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     };
@@ -483,16 +470,8 @@ const RequestDisableableTestWrapperProxyModule = buildModule(
 export const RequestDisableableTestWrapperModule = buildModule(
   "RequestDisableableTestWrapperModule",
   (m) => {
-    const {
-      proxy,
-      implementation,
-      verifierLib,
-      state,
-      stateImplementation,
-      crossChainProofValidator,
-      stateLib,
-      smtLib,
-    } = m.useModule(RequestDisableableTestWrapperProxyModule);
+    const { proxy, implementation, verifierLib, state, stateImplementation, stateLib, smtLib } =
+      m.useModule(RequestDisableableTestWrapperProxyModule);
     const requestDisableableTestWrapper = m.contractAt("RequestDisableableTestWrapper", proxy);
     return {
       requestDisableableTestWrapper: requestDisableableTestWrapper,
@@ -500,7 +479,6 @@ export const RequestDisableableTestWrapperModule = buildModule(
       verifierLib,
       state,
       stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     };
@@ -531,7 +509,6 @@ const RequestOwnershipTestWrapperProxyModule = buildModule(
     const {
       state,
       implementation: stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     } = m.useModule(StateModule);
@@ -558,7 +535,6 @@ const RequestOwnershipTestWrapperProxyModule = buildModule(
       verifierLib,
       state,
       stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     };
@@ -568,16 +544,8 @@ const RequestOwnershipTestWrapperProxyModule = buildModule(
 export const RequestOwnershipTestWrapperModule = buildModule(
   "RequestOwnershipTestWrapperModule",
   (m) => {
-    const {
-      proxy,
-      implementation,
-      verifierLib,
-      state,
-      stateImplementation,
-      crossChainProofValidator,
-      stateLib,
-      smtLib,
-    } = m.useModule(RequestOwnershipTestWrapperProxyModule);
+    const { proxy, implementation, verifierLib, state, stateImplementation, stateLib, smtLib } =
+      m.useModule(RequestOwnershipTestWrapperProxyModule);
     const requestOwnershipTestWrapper = m.contractAt("RequestOwnershipTestWrapper", proxy);
     return {
       requestOwnershipTestWrapper: requestOwnershipTestWrapper,
@@ -585,7 +553,6 @@ export const RequestOwnershipTestWrapperModule = buildModule(
       verifierLib,
       state,
       stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     };
@@ -616,7 +583,6 @@ const ValidatorWhitelistTestWrapperProxyModule = buildModule(
     const {
       state,
       implementation: stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     } = m.useModule(StateModule);
@@ -643,7 +609,6 @@ const ValidatorWhitelistTestWrapperProxyModule = buildModule(
       verifierLib,
       state,
       stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     };
@@ -653,16 +618,8 @@ const ValidatorWhitelistTestWrapperProxyModule = buildModule(
 export const ValidatorWhitelistTestWrapperModule = buildModule(
   "ValidatorWhitelistTestWrapperModule",
   (m) => {
-    const {
-      proxy,
-      implementation,
-      verifierLib,
-      state,
-      stateImplementation,
-      crossChainProofValidator,
-      stateLib,
-      smtLib,
-    } = m.useModule(ValidatorWhitelistTestWrapperProxyModule);
+    const { proxy, implementation, verifierLib, state, stateImplementation, stateLib, smtLib } =
+      m.useModule(ValidatorWhitelistTestWrapperProxyModule);
     const validatorWhitelistTestWrapper = m.contractAt("ValidatorWhitelistTestWrapper", proxy);
     return {
       validatorWhitelistTestWrapper: validatorWhitelistTestWrapper,
@@ -670,7 +627,6 @@ export const ValidatorWhitelistTestWrapperModule = buildModule(
       verifierLib,
       state,
       stateImplementation,
-      crossChainProofValidator,
       stateLib,
       smtLib,
     };

@@ -28,13 +28,7 @@ const UniversalVerifierImplementationModule = buildModule(
 
 const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule", (m) => {
   const { implementation, verifierLib } = m.useModule(UniversalVerifierImplementationModule);
-  const {
-    state,
-    implementation: stateImplementation,
-    crossChainProofValidator,
-    stateLib,
-    smtLib,
-  } = m.useModule(StateModule);
+  const { state, implementation: stateImplementation, stateLib, smtLib } = m.useModule(StateModule);
 
   const proxyAdminOwner = m.getAccount(0);
   const contractOwner = m.getAccount(0);
@@ -59,23 +53,14 @@ const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule",
     verifierLib,
     state,
     stateImplementation,
-    crossChainProofValidator,
     stateLib,
     smtLib,
   };
 });
 
 const UniversalVerifierModule = buildModule("UniversalVerifierModule", (m) => {
-  const {
-    proxy,
-    implementation,
-    verifierLib,
-    state,
-    stateImplementation,
-    crossChainProofValidator,
-    stateLib,
-    smtLib,
-  } = m.useModule(UniversalVerifierProxyModule);
+  const { proxy, implementation, verifierLib, state, stateImplementation, stateLib, smtLib } =
+    m.useModule(UniversalVerifierProxyModule);
   const universalVerifier = m.contractAt(contractsInfo.UNIVERSAL_VERIFIER.name, proxy);
   return {
     universalVerifier: universalVerifier,
@@ -83,7 +68,6 @@ const UniversalVerifierModule = buildModule("UniversalVerifierModule", (m) => {
     verifierLib,
     state,
     stateImplementation,
-    crossChainProofValidator,
     stateLib,
     smtLib,
   };
