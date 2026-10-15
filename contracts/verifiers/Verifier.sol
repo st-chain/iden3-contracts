@@ -651,6 +651,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 response.metadata
             );
 
+            VerifierLib.checkRequestIDMatch(
+                address(request.validator),
+                response.requestId,
+                response.proof
+            );
+
             if (authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH) {
                 // Check isEmbeddedAuthVerified response field is present in the response fields from the validator
                 // verification

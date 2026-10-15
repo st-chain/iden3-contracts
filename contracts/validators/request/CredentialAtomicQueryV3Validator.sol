@@ -6,11 +6,16 @@ import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {GenesisUtils} from "../../lib/GenesisUtils.sol";
 import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
 
+error InvalidDeadlineMetadata();
+error SubmissionDeadlineExpired(uint256 deadline);
+error DeadlineChallengeMismatch(uint256 expected, uint256 actual);
+
 error VerifierIDNotSet();
 error QueryHashDoesNotMatchTheRequestedOne(uint256 expected, uint256 actual);
 error VerifierAddressShouldNotBeZero();
 error CircuitsLengthShouldBeOne();
 error ProofIsNotValid();
+error PublicSignalNotInScalarField(uint256 index, uint256 value);
 error InvalidGroupIDOrLinkID(uint256 groupID, uint256 linkID);
 error ProofTypeShouldMatchTheRequestedOneInQuery();
 error InvalidNullifyPubSignal();
@@ -56,9 +61,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "3.1.0-beta.1";
+    string public constant VERSION = "3.2.0-beta.2";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.1";
+
+    uint256 private constant SNARK_SCALAR_FIELD =
+        21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     // keccak256(abi.encodePacked("groupID"))
     bytes32 private constant GROUPID_NAME =
@@ -160,7 +168,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             _checkPubSignalsWithCredentialAtomicQuery(
                 credAtomicQuery,
                 _verifyProof(proof, credAtomicQuery),
-                sender
+                sender,
+                responseMetadata
             );
     }
 
@@ -205,6 +214,13 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
+        // Also protect upgraded validators that still reference an immutable legacy verifier.
+        for (uint256 i = 0; i < inputs.length; i++) {
+            if (inputs[i] >= SNARK_SCALAR_FIELD) {
+                revert PublicSignalNotInScalarField(i, inputs[i]);
+            }
+        }
+
         IGroth16Verifier g16Verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
         if (g16Verifier == IGroth16Verifier(address(0))) {
             revert VerifierAddressShouldNotBeZero();
@@ -221,7 +237,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     function _checkPubSignalsWithCredentialAtomicQuery(
         CredentialAtomicQueryV3 memory credAtomicQuery,
         PubSignals memory pubSignals,
-        address sender
+        address sender,
+        bytes calldata responseMetadata
     ) internal view returns (IRequestValidator.ResponseField[] memory) {
         _checkAllowedIssuers(pubSignals.issuerID, credAtomicQuery.allowedIssuers);
         _checkProofExpiration(pubSignals.timestamp);
@@ -240,7 +257,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         }
 
         // Checking challenge to prevent replay attacks from other addresses
-        _checkChallenge(pubSignals.challenge, sender);
+        _checkDeadlineChallenge(pubSignals.challenge, sender, responseMetadata);
 
         // check circuitQueryHash
         if (pubSignals.circuitQueryHash != credAtomicQuery.queryHash) {
@@ -252,6 +269,35 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
         // if operator == 16 then we have selective disclosure
         return _getResponseFields(pubSignals, credAtomicQuery.operator == 16);
+    }
+
+    /**
+     * @dev An explicit deadline is abi.encode(uint256). It is bound to the VC
+     * proof by keccak256(abi.encode(sender, deadline)), truncated to 252 bits.
+     * Zero disables only the deadline check, not the proof/state expiry checks.
+     * Empty metadata retains legacy address-only proofs with no deadline.
+     */
+    function _checkDeadlineChallenge(
+        uint256 challenge,
+        address sender,
+        bytes calldata responseMetadata
+    ) internal view {
+        if (responseMetadata.length == 0) {
+            _checkChallenge(challenge, sender);
+            return;
+        }
+        if (responseMetadata.length != 32) {
+            revert InvalidDeadlineMetadata();
+        }
+        uint256 deadline = abi.decode(responseMetadata, (uint256));
+        uint256 expectedChallenge = uint256(keccak256(abi.encode(sender, deadline))) &
+            ((uint256(1) << 252) - 1);
+        if (challenge != expectedChallenge) {
+            revert DeadlineChallengeMismatch(expectedChallenge, challenge);
+        }
+        if (deadline != 0 && block.timestamp > deadline) {
+            revert SubmissionDeadlineExpired(deadline);
+        }
     }
 
     function _checkGroupIDOrLinkID(uint256 groupID, uint256 linkID) internal pure {

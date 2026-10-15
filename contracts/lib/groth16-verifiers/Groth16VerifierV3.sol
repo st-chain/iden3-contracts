@@ -106,7 +106,8 @@ contract Groth16VerifierV3 {
     function verifyProof(uint[2] calldata _pA, uint[2][2] calldata _pB, uint[2] calldata _pC, uint[14] calldata _pubSignals) public view returns (bool) {
         assembly {
             function checkField(v) {
-                if iszero(lt(v, q)) {
+                // Public signals are scalars, not curve coordinates.
+                if iszero(lt(v, r)) {
                     mstore(0, 0)
                     return(0, 0x20)
                 }
@@ -255,9 +256,6 @@ contract Groth16VerifierV3 {
             checkField(calldataload(add(_pubSignals, 384)))
 
             checkField(calldataload(add(_pubSignals, 416)))
-
-            checkField(calldataload(add(_pubSignals, 448)))
-
 
         // Validate all evaluations
             let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem)

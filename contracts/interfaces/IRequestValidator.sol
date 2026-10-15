@@ -63,6 +63,8 @@ interface IRequestValidator {
 
     /**
      * @dev Get the index of the public input of the circuit by name
+     * Verifiers use requestID, when present, to bind abi.encode(inputs, a, b, c)
+     * to the target request. Absent inputs must revert with InputNameNotFound.
      * @param name Name of the public input
      * @return Index of the public input
      */

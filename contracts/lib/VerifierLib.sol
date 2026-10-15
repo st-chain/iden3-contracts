@@ -15,6 +15,8 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
 
 library VerifierLib {
+    error RequestIdInputIndexOutOfBounds(uint256 index, uint256 inputsLength);
+
     /// @dev Link ID field name
     string private constant LINK_ID_PROOF_FIELD_NAME = "linkID";
     /// @dev User ID field name
@@ -581,6 +583,46 @@ library VerifierLib {
 
         if (proof.isVerified) {
             revert ProofByUserIdAlreadyVerified(requestId, userId);
+        }
+    }
+
+    /**
+     * @dev Bind the verified circuit request ID to the response's target request.
+     * Validators exposing requestID use abi.encode(inputs, a, b, c) for their proof.
+     * Linked-query circuits without that input explicitly return InputNameNotFound.
+     */
+    function checkRequestIDMatch(
+        address validatorAddress,
+        uint256 requestId,
+        bytes memory proof
+    ) external view {
+        uint256 index;
+        try IRequestValidator(validatorAddress).inputIndexOf("requestID") returns (
+            uint256 inputIndex
+        ) {
+            index = inputIndex;
+        } catch (bytes memory reason) {
+            if (
+                reason.length == 4 && bytes4(reason) == IRequestValidator.InputNameNotFound.selector
+            ) {
+                return;
+            }
+            // Unexpected lookup failures must not bypass request binding.
+            // solhint-disable-next-line no-inline-assembly
+            assembly {
+                revert(add(reason, 32), mload(reason))
+            }
+        }
+
+        (uint256[] memory inputs, , , ) = abi.decode(
+            proof,
+            (uint256[], uint256[2], uint256[2][2], uint256[2])
+        );
+        if (index >= inputs.length) {
+            revert RequestIdInputIndexOutOfBounds(index, inputs.length);
+        }
+        if (inputs[index] != requestId) {
+            revert RequestIdNotValid(requestId, inputs[index]);
         }
     }
 
