@@ -17,16 +17,6 @@ const UpgradeStateModule = buildModule("UpgradeStateModule".concat(version), (m)
   const smtLibContractAddress = m.getParameter("smtLibContractAddress");
   const smtLib = m.contractAt(contractsInfo.SMT_LIB.name, smtLibContractAddress);
 
-  const domainName = "StateInfo";
-  const signatureVersion = "1";
-  const oracleSigningAddress = m.getParameter("oracleSigningAddress");
-
-  const crossChainProofValidator = m.contract(contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name, [
-    domainName,
-    signatureVersion,
-    oracleSigningAddress,
-  ]);
-
   const newImplementation = m.contract(contractsInfo.STATE.name, [], {
     libraries: {
       StateLib: stateLib,
@@ -45,7 +35,6 @@ const UpgradeStateModule = buildModule("UpgradeStateModule".concat(version), (m)
 
   return {
     state: proxy,
-    crossChainProofValidator,
     stateLib,
     newImplementation,
     proxyAdmin,

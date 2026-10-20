@@ -45,6 +45,41 @@ const accounts: any = {
       }),
 };
 
+const compilerOverrides = {
+  "contracts/verifiers/UniversalVerifier.sol": {
+    version: "0.8.27",
+    settings: { optimizer: { enabled: true, runs: 80 } },
+  },
+  "contracts/test-helpers/VerifierTestWrapper.sol": {
+    version: "0.8.27",
+    settings: { optimizer: { enabled: true, runs: 200 } },
+  },
+  "contracts/test-helpers/EmbeddedVerifierWrapper.sol": {
+    version: "0.8.27",
+    settings: { optimizer: { enabled: true, runs: 200 } },
+  },
+  "contracts/test-helpers/RequestDisableableTestWrapper.sol": {
+    version: "0.8.27",
+    settings: { optimizer: { enabled: true, runs: 200 } },
+  },
+  "contracts/test-helpers/RequestOwnershipTestWrapper.sol": {
+    version: "0.8.27",
+    settings: { optimizer: { enabled: true, runs: 200 } },
+  },
+  "contracts/test-helpers/ValidatorWhitelistTestWrapper.sol": {
+    version: "0.8.27",
+    settings: { optimizer: { enabled: true, runs: 200 } },
+  },
+  "contracts/state/State.sol": {
+    version: "0.8.27",
+    settings: { optimizer: { enabled: true, runs: 200 } },
+  },
+  "contracts/lib/VerifierLib.sol": {
+    version: "0.8.27",
+    settings: { optimizer: { enabled: true, runs: 200 } },
+  },
+};
+
 export default defineConfig({
   plugins: [
     hardhatToolboxMochaEthers,
@@ -54,89 +89,28 @@ export default defineConfig({
     hardhatVerify,
   ],
   solidity: {
-    compilers: [
-      {
-        version: "0.8.27",
+    profiles: {
+      default: {
+        compilers: [{ version: "0.8.27" }],
+        overrides: compilerOverrides,
       },
-    ],
+      "me-hub": {
+        compilers: [{ version: "0.8.27", settings: { evmVersion: "london" } }],
+        overrides: Object.fromEntries(
+          Object.entries(compilerOverrides).map(([sourceName, compiler]) => [
+            sourceName,
+            {
+              ...compiler,
+              settings: { ...compiler.settings, evmVersion: "london" },
+            },
+          ]),
+        ),
+      },
+    },
     npmFilesToBuild: [
       "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol",
       "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol",
     ],
-    overrides: {
-      "contracts/verifiers/UniversalVerifier.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 80,
-          },
-        },
-      },
-      "contracts/test-helpers/VerifierTestWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/test-helpers/EmbeddedVerifierWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/test-helpers/RequestDisableableTestWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/test-helpers/RequestOwnershipTestWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/test-helpers/ValidatorWhitelistTestWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/state/State.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/lib/VerifierLib.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-    },
   },
   networks: {
     "privado-mainnet": {
@@ -313,16 +287,6 @@ export default defineConfig({
           name: "billions-mainnet",
           url: "https://explorer.billions.network",
           apiUrl: "https://explorer.billions.network/api/",
-        },
-      },
-    },
-    2401: {
-      name: "me-hub",
-      blockExplorers: {
-        blockscout: {
-          name: "me-hub",
-          url: "http://127.0.0.1:8545",
-          apiUrl: "http://127.0.0.1:8545",
         },
       },
     },

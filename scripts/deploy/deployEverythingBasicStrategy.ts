@@ -11,6 +11,8 @@ async function main() {
     },
   };
 
+  const chainId = await getChainId();
+
   const {
     universalVerifier,
     universalVerifierImplementation,
@@ -30,12 +32,9 @@ async function main() {
     authV2Validator,
     authV3Validator,
     authV3_8_32Validator,
-    universalVerifier_ManyResponsesPerUserAndRequestImplementation,
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    verifierLib_ManyResponsesPerUserAndRequest,
   } = await ignition.deploy(DeployEverythingBasicStrategy, {
     parameters: params,
-    deploymentId: `chain-${await getChainId()}-simple-deploy-basic-strategy`,
+    deploymentId: `chain-${chainId}-simple-deploy-basic-strategy${chainId === 2401 ? "-london-v1" : ""}`,
     displayUi: true,
     config: {
       blockPollingInterval: 1000,
@@ -61,9 +60,6 @@ async function main() {
     authV2Validator,
     authV3Validator,
     authV3_8_32Validator,
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    universalVerifier_ManyResponsesPerUserAndRequestImplementation,
-    verifierLib_ManyResponsesPerUserAndRequest,
   ]) {
     await verifyContract(contract.target, {
       constructorArgsImplementation: [],

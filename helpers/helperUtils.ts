@@ -15,6 +15,7 @@ import { verifyContract as hardhatVerifyContract } from "@nomicfoundation/hardha
 const __dirname = path.resolve();
 
 const { ethers, provider, networkName } = await network.connect();
+let warnedMeHubVerificationSkipped = false;
 
 export function getConfig() {
   return {
@@ -94,8 +95,22 @@ export async function verifyContract(
     return true;
   }
 
-  console.log(`Verifying contract at address: ${contractAddress} ...`);
   const chainDescriptor = hre.config.chainDescriptors.get(BigInt(await getChainId()));
+  if (
+    networkName === "me-hub" &&
+    !chainDescriptor?.blockExplorers?.etherscan &&
+    !chainDescriptor?.blockExplorers?.blockscout
+  ) {
+    if (!warnedMeHubVerificationSkipped) {
+      Logger.warning(
+        "Skipping me-hub source verification: no explorer API is configured. Check deployment status separately; source remains unverified.\n",
+      );
+      warnedMeHubVerificationSkipped = true;
+    }
+    return false;
+  }
+
+  console.log(`Verifying contract at address: ${contractAddress} ...`);
   const explorerProvider = chainDescriptor?.blockExplorers?.etherscan ? "etherscan" : "blockscout";
   // When verifying if the proxy contract is not verified yet we need to pass the arguments
   // for the proxy contract first, then for proxy admin and finally for the implementation contract

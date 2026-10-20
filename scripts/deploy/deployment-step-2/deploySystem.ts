@@ -30,6 +30,10 @@ import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
 import AuthV3_8_32ValidatorModule from "../../../ignition/modules/authV3_8_32Validator";
 import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStableValidator";
 import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
+import {
+  registerValidators,
+  type ValidatorRegistration,
+} from "../../maintenance/helpers/validatorRegistration";
 
 const { ethers, ignition } = await network.connect();
 
@@ -202,7 +206,7 @@ async function main() {
   }
 
   // get UniversalVerifier contract
-  const universalVerifier = (
+  const universalVerifier: any = (
     await ignition.deploy(UniversalVerifierAtModule, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
@@ -211,6 +215,13 @@ async function main() {
     })
   ).proxy;
 
+  // Resolve every deployed proxy before configuring anything. The shared helper checks
+  // bytecode, existing auth bindings/params/active status, and UV ownership before writes.
+  const registration: ValidatorRegistration = {
+    universalVerifier: await universalVerifier.getAddress(),
+    requestValidators: [],
+    authMethods: [],
+  };
   for (const validator of requestValidators) {
     const validatorDeployed = await ignition.deploy(validator.moduleAt, {
       strategy: deployStrategy,
@@ -218,17 +229,10 @@ async function main() {
       parameters: parameters,
       deploymentId: deploymentId,
     });
-    if (!(await universalVerifier.isWhitelistedValidator(validatorDeployed.proxy.target))) {
-      const tx = await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
-      await tx.wait();
-      console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} added to whitelisted validators`,
-      );
-    } else {
-      console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} already whitelisted`,
-      );
-    }
+    registration.requestValidators.push({
+      name: validator.name,
+      address: await validatorDeployed.proxy.getAddress(),
+    });
   }
 
   for (const validator of authValidators) {
@@ -238,38 +242,25 @@ async function main() {
       parameters: parameters,
       deploymentId: deploymentId,
     });
-
-    for (const authMethod of validator.authMethods) {
-      if (!(await universalVerifier.authMethodExists(authMethod))) {
-        const tx = await universalVerifier.setAuthMethod({
-          authMethod: authMethod,
-          validator: validatorDeployed.proxy.target,
-          params: "0x",
-        });
-        await tx.wait();
-        console.log(
-          `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${authMethod} added to auth methods`,
-        );
-      } else {
-        console.log(
-          `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${authMethod} already added to auth methods`,
-        );
-      }
+    for (const { authMethod, params } of validator.authMethods) {
+      registration.authMethods.push({
+        authMethod,
+        validator: await validatorDeployed.proxy.getAddress(),
+        params,
+      });
     }
   }
-
-  const authMethodEmbeddedAuth = "embeddedAuth";
-  if (!(await universalVerifier.authMethodExists(authMethodEmbeddedAuth))) {
-    const tx = await universalVerifier.setAuthMethod({
-      authMethod: authMethodEmbeddedAuth,
-      validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
-      params: "0x",
-    });
-    await tx.wait();
-    console.log(`${authMethodEmbeddedAuth} added to auth methods`);
-  } else {
-    console.log(`${authMethodEmbeddedAuth} already added to auth methods`);
-  }
+  registration.authMethods.push({
+    authMethod: "embeddedAuth",
+    validator: registration.universalVerifier,
+    params: "0x",
+  });
+  await registerValidators({
+    provider: ethers.provider,
+    signer,
+    verifier: universalVerifier.connect(signer),
+    registration,
+  });
 }
 
 main()

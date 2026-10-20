@@ -175,7 +175,7 @@ export const contractsInfo = Object.freeze({
   },
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
-    version: "3.0.0",
+    version: "3.0.1",
     unifiedAddress: "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
     verificationOpts: {
@@ -244,7 +244,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_V3: {
     name: "CredentialAtomicQueryV3Validator",
-    version: "3.1.0-beta.1",
+    version: "3.2.0-beta.2",
     unifiedAddress: "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator.v3"),

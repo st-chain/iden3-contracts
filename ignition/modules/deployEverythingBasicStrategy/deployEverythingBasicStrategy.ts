@@ -7,7 +7,6 @@ import LinkedMultiQueryValidatorModule from "./linkedMultiQueryValidator";
 import EthIdentityValidatorModule from "./ethIdentityValidator";
 import AuthV2ValidatorModule from "./authV2Validator";
 import IdentityTreeStoreModule from "./identityTreeStore";
-import UniversalVerifier_ManyResponsesPerUserAndRequestModule from "./universalVerifier_ManyResponsesPerUserAndRequest";
 import { network } from "hardhat";
 import AuthV3ValidatorModule from "./authV3Validator";
 import AuthV3_8_32ValidatorModule from "./authV3_8_32Validator";
@@ -124,125 +123,10 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     },
   );
 
-  const {
-    universalVerifier: universalVerifier_ManyResponsesPerUserAndRequest,
-    universalVerifierImplementation: universalVerifier_ManyResponsesPerUserAndRequestImplementation,
-    verifierLib: verifierLib_ManyResponsesPerUserAndRequest,
-  } = m.useModule(UniversalVerifier_ManyResponsesPerUserAndRequestModule);
-
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "addValidatorToWhitelist",
-    [credentialAtomicQueryMTPV2Validator],
-    {
-      id: "addValidatorToWhitelist_credentialAtomicQueryMTPV2Validator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "addValidatorToWhitelist",
-    [credentialAtomicQuerySigV2Validator],
-    {
-      id: "addValidatorToWhitelist_credentialAtomicQuerySigV2Validator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "addValidatorToWhitelist",
-    [credentialAtomicQueryV3Validator],
-    {
-      id: "addValidatorToWhitelist_credentialAtomicQueryV3Validator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "addValidatorToWhitelist",
-    [credentialAtomicQueryV3StableValidator],
-    {
-      id: "addValidatorToWhitelist_credentialAtomicQueryV3StableValidator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "addValidatorToWhitelist",
-    [linkedMultiQueryValidator],
-    {
-      id: "addValidatorToWhitelist_linkedMultiQueryValidator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "addValidatorToWhitelist",
-    [linkedMultiQueryStableValidator],
-    {
-      id: "addValidatorToWhitelist_linkedMultiQueryStableValidator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "setAuthMethod",
-    [{ authMethod: "ethIdentity", validator: ethIdentityValidator, params: "0x" }],
-    {
-      id: "setAuthMethod_ethIdentityValidator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "setAuthMethod",
-    [{ authMethod: "authV2", validator: authV2Validator, params: "0x" }],
-    {
-      id: "setAuthMethod_authV2Validator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "setAuthMethod",
-    [{ authMethod: "authV3", validator: authV3Validator, params: "0x" }],
-    {
-      id: "setAuthMethod_authV3Validator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "setAuthMethod",
-    [{ authMethod: "authV3-8-32", validator: authV3_8_32Validator, params: "0x" }],
-    {
-      id: "setAuthMethod_authV3_8_32Validator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-  m.call(
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    "setAuthMethod",
-    [
-      {
-        authMethod: "embeddedAuth",
-        validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
-        params: "0x",
-      },
-    ], // put some dummy address as validator
-    {
-      id: "setAuthMethod_embeddedAuthValidator_ManyResponsesPerUserAndRequest",
-      from: contractOwner,
-    },
-  );
-
   return {
     universalVerifier,
     universalVerifierImplementation,
     verifierLib,
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    universalVerifier_ManyResponsesPerUserAndRequestImplementation,
-    verifierLib_ManyResponsesPerUserAndRequest,
     state,
     stateImplementation,
     stateLib,

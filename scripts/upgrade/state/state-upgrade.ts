@@ -1,136 +1,196 @@
+import { expect } from "chai";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { network } from "hardhat";
-import { expect } from "chai"; // abi of contract that will be upgraded
-import {
-  checkContractVersion,
-  getConfig,
-  getDeploymentParameters,
-  getStateContractAddress,
-  verifyContract,
-  writeDeploymentParameters,
-} from "../../../helpers/helperUtils";
-import { contractsInfo } from "../../../helpers/constants";
-import UpgradeStateModule from "../../../ignition/modules/upgrades/upgradeState";
-import { transferOwnership } from "../helpers/utils";
+import type { NetworkConnection } from "hardhat/types/network";
 
-const { ethers, ignition } = await network.connect();
+const ADMIN_SLOT = "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103";
+const IMPLEMENTATION_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
 
-// If you want to use impersonation, set the impersonate variable to true
-// With ignition we can't use impersonation, so we need to transfer ownership to the signer
-// before the upgrade to test in a fork. This is done in the transferOwnership function below.
-const impersonate = false;
+type UpgradeHelpers = Pick<
+  typeof import("../../../helpers/helperUtils"),
+  "getStateContractAddress" | "verifyContract" | "writeDeploymentParameters"
+>;
 
-async function main() {
-  const config = getConfig();
-  const parameters = await getDeploymentParameters();
-  const deploymentId = parameters.DeploymentId || undefined;
+export async function upgradeState(
+  { ethers, ignition }: Pick<NetworkConnection, "ethers" | "ignition">,
+  parameters: any,
+  helpers: UpgradeHelpers,
+) {
+  const { contractsInfo } = await import("../../../helpers/constants");
+  const { default: UpgradeStateModule } =
+    await import("../../../ignition/modules/upgrades/upgradeState");
+  const stateContractAddress =
+    parameters.StateAtModule?.proxyAddress || (await helpers.getStateContractAddress());
+  const proxyAdminAddress = parameters.StateAtModule?.proxyAdminAddress;
 
-  if (!ethers.isAddress(config.ledgerAccount)) {
-    throw new Error("LEDGER_ACCOUNT is not set");
+  async function requireContract(label: string, address: string | undefined) {
+    if (!address || !ethers.isAddress(address) || address === ethers.ZeroAddress) {
+      throw new Error(`${label} address is missing, invalid, or zero`);
+    }
+    if ((await ethers.provider.getCode(address)) === "0x") {
+      throw new Error(`${label} has no contract code at ${address}`);
+    }
   }
 
-  const stateContractAddress = parameters.StateAtModule.proxyAddress || getStateContractAddress();
-  const [signer] = await ethers.getSigners();
+  await requireContract("State proxy", stateContractAddress);
+  await requireContract("ProxyAdmin", proxyAdminAddress);
 
-  console.log("Proxy Admin Owner Address for the upgrade: ", signer.address);
-  console.log("State Owner Address for the upgrade: ", signer.address);
-
-  const { upgraded, currentVersion } = await checkContractVersion(
-    contractsInfo.STATE.name,
-    stateContractAddress,
-    contractsInfo.STATE.version,
-  );
-
-  if (upgraded) {
-    console.log(`Contract is already upgraded to version ${contractsInfo.STATE.version}`);
-    return;
-  } else {
-    console.log(
-      `Contract is not upgraded and will upgrade version ${currentVersion} to ${contractsInfo.STATE.version}`,
+  const readProxyAdmin = async () =>
+    ethers.getAddress(
+      ethers.dataSlice(await ethers.provider.getStorage(stateContractAddress, ADMIN_SLOT), 12),
+    );
+  const actualProxyAdminAddress = await readProxyAdmin();
+  if (actualProxyAdminAddress !== ethers.getAddress(proxyAdminAddress)) {
+    throw new Error(
+      `State proxy admin ${actualProxyAdminAddress} does not match configured ProxyAdmin ${proxyAdminAddress}`,
     );
   }
 
-  const proxyAt = await ethers.getContractAt(
+  const [signer] = await ethers.getSigners();
+  if (!signer) {
+    throw new Error("No upgrade signer is available");
+  }
+  const signerAddress = await signer.getAddress();
+  const stateContract = await ethers.getContractAt(
     contractsInfo.STATE.name,
-    parameters.StateAtModule.proxyAddress,
+    stateContractAddress,
+    signer,
   );
-  const proxyAdminAt = await ethers.getContractAt(
-    "ProxyAdmin",
-    parameters.StateAtModule.proxyAdminAddress,
-  );
+  const proxyAdminAt = await ethers.getContractAt("ProxyAdmin", proxyAdminAddress, signer);
+  const proxyAdminOwnerBefore = await proxyAdminAt.owner();
+  const stateOwnerBefore = await stateContract.owner();
 
-  if (impersonate) {
-    console.log("Impersonating Ledger Account by ownership transfer");
-    await transferOwnership(signer, { proxy: proxyAt, proxyAdmin: proxyAdminAt });
+  console.log("Upgrade signer: ", signerAddress);
+  console.log("ProxyAdmin owner: ", proxyAdminOwnerBefore);
+  console.log("State owner (may differ from ProxyAdmin owner): ", stateOwnerBefore);
+  if (ethers.getAddress(proxyAdminOwnerBefore) !== ethers.getAddress(signerAddress)) {
+    throw new Error(
+      `Upgrade signer ${signerAddress} is not ProxyAdmin owner ${proxyAdminOwnerBefore}`,
+    );
   }
 
-  const stateContract = proxyAt;
-  console.log("Version before: ", await stateContract.VERSION());
+  const currentVersion = await stateContract.VERSION();
+  if (currentVersion === contractsInfo.STATE.version) {
+    console.log(`Contract is already upgraded to version ${contractsInfo.STATE.version}`);
+    return { upgraded: false, state: stateContract };
+  }
+  console.log(
+    `Contract is not upgraded and will upgrade version ${currentVersion} to ${contractsInfo.STATE.version}`,
+  );
 
-  const defaultIdTypeBefore = await stateContract.getDefaultIdType();
-  const stateOwnerAddressBefore = await stateContract.owner();
+  const smtLibContractAddress = parameters.SmtLibAtModule?.contractAddress;
+  await requireContract("SmtLib", smtLibContractAddress);
+  const before = {
+    defaultIdType: await stateContract.getDefaultIdType(),
+    verifier: await stateContract.getVerifier(),
+    gistRoot: await stateContract.getGISTRoot(),
+    crossChainProofValidator: await stateContract.getCrossChainProofValidator(),
+  };
+  console.log(
+    "Run in a maintenance window: concurrent State transitions can change the GIST root between upgrade snapshots.",
+  );
 
   const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_").replaceAll("-", "_"));
-  parameters["UpgradeStateModule".concat(version)] = {
-    proxyAddress: parameters.StateAtModule.proxyAddress,
-    proxyAdminAddress: parameters.StateAtModule.proxyAdminAddress,
-    oracleSigningAddress: parameters.CrossChainProofValidatorModule.oracleSigningAddress,
-    smtLibContractAddress: parameters.SmtLibAtModule.contractAddress,
-    poseidon1ContractAddress: parameters.Poseidon1AtModule.contractAddress,
+  const moduleId = "UpgradeStateModule".concat(version);
+  parameters[moduleId] = {
+    // Keep historical parameter fields, but introduce only the parameters this upgrade needs.
+    ...parameters[moduleId],
+    proxyAddress: stateContractAddress,
+    proxyAdminAddress,
+    smtLibContractAddress,
   };
 
-  // **** Upgrade State ****
-  const { newImplementation, state, crossChainProofValidator, stateLib, proxy, proxyAdmin } =
-    await ignition.deploy(UpgradeStateModule, {
-      defaultSender: signer.address,
-      parameters: parameters,
-      deploymentId: deploymentId,
-    });
+  const { newImplementation, state, stateLib, proxy, proxyAdmin } = await ignition.deploy(
+    UpgradeStateModule,
+    {
+      defaultSender: signerAddress,
+      parameters,
+      deploymentId: parameters.DeploymentId || undefined,
+    },
+  );
 
   parameters.StateAtModule = {
+    ...parameters.StateAtModule,
     proxyAddress: proxy.target,
     proxyAdminAddress: proxyAdmin.target,
   };
   parameters.StateNewImplementationAtModule = {
+    ...parameters.StateNewImplementationAtModule,
     contractAddress: newImplementation.target,
   };
-  parameters.CrossChainProofValidatorAtModule = {
-    contractAddress: crossChainProofValidator.target,
-  };
   parameters.StateLibAtModule = {
+    ...parameters.StateLibAtModule,
     contractAddress: stateLib.target,
   };
-  // ************************
+  // The upgrade is already mined. Preserve its addresses even if an assertion or verification fails.
+  await helpers.writeDeploymentParameters(parameters);
 
-  console.log("Version after: ", await state.VERSION());
-
-  await verifyContract(proxy.target, contractsInfo.STATE.verificationOpts);
-  await verifyContract(newImplementation.target, {
-    constructorArgsImplementation: [],
-    libraries: {},
-  });
-  await verifyContract(stateLib.target, contractsInfo.STATE_LIB.verificationOpts);
-  await verifyContract(
-    await crossChainProofValidator.getAddress(),
-    contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.verificationOpts,
+  expect(await proxy.getAddress(), "State proxy address changed").to.equal(
+    ethers.getAddress(stateContractAddress),
+  );
+  expect(await proxyAdmin.getAddress(), "ProxyAdmin address changed").to.equal(
+    actualProxyAdminAddress,
+  );
+  expect(await readProxyAdmin(), "State proxy admin changed").to.equal(actualProxyAdminAddress);
+  expect(
+    ethers.getAddress(
+      ethers.dataSlice(
+        await ethers.provider.getStorage(stateContractAddress, IMPLEMENTATION_SLOT),
+        12,
+      ),
+    ),
+    "State implementation does not match the deployed upgrade",
+  ).to.equal(await newImplementation.getAddress());
+  expect(await proxyAdmin.owner(), "ProxyAdmin owner changed").to.equal(proxyAdminOwnerBefore);
+  expect(await state.owner(), "State owner changed").to.equal(stateOwnerBefore);
+  expect(await state.getDefaultIdType(), "State default ID type changed").to.equal(
+    before.defaultIdType,
+  );
+  expect(await state.getVerifier(), "State verifier changed").to.equal(before.verifier);
+  expect(
+    await state.getGISTRoot(),
+    "State GIST root changed; check for concurrent State transitions during the maintenance window",
+  ).to.equal(before.gistRoot);
+  expect(await state.getCrossChainProofValidator(), "State cross-chain validator changed").to.equal(
+    before.crossChainProofValidator,
+  );
+  expect(await state.VERSION(), "Unexpected State version after upgrade").to.equal(
+    contractsInfo.STATE.version,
   );
 
-  const defaultIdTypeAfter = await state.getDefaultIdType();
-  const stateOwnerAddressAfter = await state.owner();
+  await helpers.verifyContract(proxy.target, contractsInfo.STATE.verificationOpts);
+  await helpers.verifyContract(newImplementation.target, {
+    constructorArgsImplementation: [],
+    libraries: {
+      StateLib: await stateLib.getAddress(),
+      SmtLib: smtLibContractAddress,
+    },
+  });
+  await helpers.verifyContract(stateLib.target, contractsInfo.STATE_LIB.verificationOpts);
 
-  expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
-  expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
-
-  const tx1 = await state.setCrossChainProofValidator(crossChainProofValidator.target);
-  await tx1.wait();
-
+  console.log("Version after: ", await state.VERSION());
   console.log("Contract Upgrade Finished");
-
-  await writeDeploymentParameters(parameters);
+  return { upgraded: true, state, newImplementation, stateLib, proxy, proxyAdmin };
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
+export async function main() {
+  const helpers = await import("../../../helpers/helperUtils");
+  return upgradeState(await network.connect(), await helpers.getDeploymentParameters(), helpers);
+}
+
+export function isStateUpgradeEntrypoint(argv: string[] = process.argv) {
+  const scriptPath = fileURLToPath(import.meta.url);
+  const isScriptPath = (arg: string | undefined) =>
+    arg !== undefined && resolve(arg) === scriptPath;
+  // Hardhat 3's `run` imports the script in-process, so argv[1] is the Hardhat CLI, not this file.
+  const runIndex = argv.indexOf("run", 2);
+  return isScriptPath(argv[1]) || (runIndex !== -1 && argv.slice(runIndex + 1).some(isScriptPath));
+}
+
+if (isStateUpgradeEntrypoint()) {
+  main().catch((error) => {
     console.error(error);
-    process.exit(1);
+    process.exitCode = 1;
   });
+}
